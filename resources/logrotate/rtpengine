@@ -1,0 +1,13 @@
+/var/log/rtpengine*.log  {
+    daily
+    missingok
+    rotate 5
+    compress
+    delaycompress
+    create 640 root root
+    sharedscripts
+    copytruncate
+    postrotate
+        systemctl kill -s HUP --kill-who=main rsyslog 2>/dev/null || true
+    endscript
+}

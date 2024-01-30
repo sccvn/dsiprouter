@@ -1,0 +1,14 @@
+#-------------------------------------------------------------------
+# packages from debian 11 (bullseye) release
+#-------------------------------------------------------------------
+deb https://deb.debian.org/debian/ bullseye main contrib non-free
+#deb-src https://deb.debian.org/debian/ bullseye main contrib non-free
+
+deb https://deb.debian.org/debian/ bullseye-updates main contrib non-free
+#deb-src https://deb.debian.org/debian/ bullseye-updates main contrib non-free
+
+deb https://deb.debian.org/debian/ bullseye-backports main
+#deb-src https://deb.debian.org/debian/ bullseye-backports main
+
+deb https://deb.debian.org/debian-security/ bullseye-security main
+#deb-src https://deb.debian.org/debian-security/ bullseye-security main

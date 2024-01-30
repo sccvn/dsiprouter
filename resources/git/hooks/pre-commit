@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+#
+# Summary:  Create CONTRIBUTORS.md and requirements.txt on commit
+# Author:   DevOpSec <https://github.com/devopsec>
+# Usage:    Copy to your repo in <repo>/.git/hooks/pre-commit
+#           Alternatively the functions can be run outside of git (using -exec option)
+# Notes:    Requires pipreqs -> pip install pipreqs
+#           To add directories to recursive search, change INCLUDE_DIRS (its an array)
+# TODO:     Need to add automated CVE checking for python libs, such as with safety
+#           more info: https://github.com/pyupio/safety
+# TODO:     Need to add python linting / validation checks, here are a couple examples:
+#           https://github.com/pre-commit/pre-commit-hooks
+#           https://econ-project-templates.readthedocs.io/en/stable/pre-commit.html
+#
+
+
+# unshadow git command
+unset -f git
+# project root
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+# destination file
+CONTRIBUTING_FILE="CONTRIBUTORS.md"
+# indicator that we commited the changelog
+CHANGELOG_INDICATOR_FILE="${PROJECT_ROOT}/.changelog_commited"
+# where are the python projects for this repo?
+INCLUDE_DIRS=("${PROJECT_ROOT}/gui")
+# dirs to exclude from requirements
+EXCLUDE_DIRS=( )
+# destination file
+REQUIREMENTS_FILE="requirements.txt"
+# pipreqs only catches stdlib libraries
+INCLUDE_LIBS=(
+	'Jinja2==3.0.3' 'Werkzeug==2.0.2' 'itsdangerous==2.0.1' 'Flask~=2.2.0' 'docutils<0.17,>=0.12'
+	'mysqlclient' 'docker' 'sphinx' 'recommonmark' 'sphinxcontrib-httpdomain' 'sphinx-rtd-theme'
+	'pem' 'twilio' 'SQLAlchemy~=2.0' 'acme'
+)
+# excludes for conflicting libs
+EXCLUDE_LIBS=(
+	'Jinja2' 'Werkzeug' 'itsdangerous' 'Flask' 'docker_py' 'pyspark' 'acme.hello' 'MySQL-python'
+	'SQLAlchemy' 'certbot'
+)
+
+
+# utility function
+joinwith() {
+    local START="$1" IFS="$2" END="$3" ARR=()
+    shift;shift;shift
+
+    for VAR in "$@"; do
+        ARR+=("${START}${VAR}${END}")
+    done
+
+    echo "${ARR[*]}"
+}
+
+# creates CONTRIBUTORS.md for project
+createContributors() {
+    local OUT_FILE="${PROJECT_ROOT}/${CONTRIBUTING_FILE}"
+
+    printf '%s\n\n%s\n\n' \
+        "## Thank you to all contributors for your hard work" \
+        "### Contributors" > ${OUT_FILE}
+
+    git shortlog -sn HEAD | grep -oP '[\s\d]*\K.*'| awk '{for (i=1; i<=NF; i++) print "- " $0}' | sort -u >> ${OUT_FILE}
+
+    git add ${OUT_FILE}
+}
+
+# creates requirements.txt for python projects
+# TODO: reformat so code is more readable
+createRequirements() {
+    local OUT_FILE=""
+    local EXCLUDE_ARGS=""
+
+    # sanity check, is this a python project?
+    if (( $(find ${INCLUDE_DIRS[@]} -type f -name "*.py" 2>/dev/null | wc -l) == 0 )); then
+        return
+    fi
+
+    if (( ${#EXCLUDE_DIRS[@]} > 0 )); then
+        EXCLUDE_ARGS="--ignore $(joinwith '' ',' '' ${EXCLUDE_DIRS[@]})"
+    fi
+
+    for PYTHON_PROJECT in ${INCLUDE_DIRS[@]}; do
+        OUT_FILE="${PYTHON_PROJECT}/${REQUIREMENTS_FILE}"
+
+        if (( ${#EXCLUDE_LIBS[@]} != 0 )); then
+            LIBS=( ${INCLUDE_LIBS[@]} $(pipreqs --mode no-pin --print ${EXCLUDE_ARGS} ${PYTHON_PROJECT} 2>/dev/null | sed -r '/^\s*$/d' | grep -E -v $(joinwith '^' '|' '$' ${EXCLUDE_LIBS[@]}); exit ${PIPESTATUS[0]};) )
+        else
+            LIBS=( ${INCLUDE_LIBS[@]} $(pipreqs --mode no-pin --print ${EXCLUDE_ARGS} ${PYTHON_PROJECT} 2>/dev/null | sed -r '/^\s*$/d'; exit ${PIPESTATUS[0]};) )
+        fi
+
+        # make sure pipreqs didn't fail
+        if (( $? != 0 )); then
+            exit 1
+        fi
+
+        # only create requirements.txt if we found dependencies
+        if (( ${#LIBS[@]} > 0 )); then
+            printf '%s\n' "${LIBS[@]}" | sort -u > ${OUT_FILE}
+            git add ${OUT_FILE}
+        fi
+    done
+}
+
+# prevent some common syntax errors from getting committed
+checkSyntaxErrors() {
+    if ! _git_check_syntax >/dev/null; then
+        exit 1
+    fi
+}
+
+# make sure merge conflicts are all handled
+checkMergeConflicts() {
+    if [[ "$(git diff-index --cached -G '^<<<<<<< HEAD' HEAD)" != "" ]]; then
+        exit 1
+    fi
+}
+
+main() {
+    # make sure un-staged and un-tracked code is not checked by this script
+    # in the future this will be more important as we add linting
+    BACKUPS_DIR="/tmp/$(date +%s)"
+
+    # reset unstaged files before exiting even if we fail early
+    # if resetting files fail then they will still exist in backup dir
+    resetUnstagedFiles() {
+        find ${BACKUPS_DIR} -type f -print 2>/dev/null |
+            perl -e "\$bd='${BACKUPS_DIR}';" -pe 's%^${bd}/(.*)$%\1%gm' |
+            xargs sh -c 'for arg do mkdir -p "'"${PROJECT_ROOT}"'/$(dirname ${arg} 2>/dev/null)"; mv -f "'"${BACKUPS_DIR}"'/${arg}" "'"${PROJECT_ROOT}"'/${arg}"; done' _
+    }
+    trap resetUnstagedFiles EXIT
+
+    git ls-files -z -o --exclude-standard |
+        xargs -0 sh -c 'for arg do mkdir -p "'"${BACKUPS_DIR}"'/$(dirname ${arg} 2>/dev/null)"; mv -f "${arg}" "'"${BACKUPS_DIR}"'/${arg}"; done' _
+    git ls-files -z -m --exclude-standard |
+        xargs -0 sh -c 'for arg do mkdir -p "'"${BACKUPS_DIR}"'/$(dirname ${arg} 2>/dev/null)"; cp -f "${arg}" "'"${BACKUPS_DIR}"'/${arg}"; done' _
+    git checkout -- ${PROJECT_ROOT}
+
+    checkMergeConflicts
+    checkSyntaxErrors
+    createContributors
+    createRequirements
+
+    exit 0
+}
+
+# allow execution outside of git hook
+if (( $# > 0 )) && [[ "$1" == "-exec" ]]; then
+    main
+fi
+
+# prevent recursion
+if [[ -e ${CHANGELOG_INDICATOR_FILE} ]]; then
+    exit 0
+else
+    main
+fi

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+{% from 'util.jinja2.html' import link_tag, script_tag, tracked_link, img_tag %}
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>dSIPRouter {% block title %}{% endblock %}</title>
+
+  <!-- inherited CSS -->
+  {{ link_tag('bootstrap') }}
+  {{ link_tag('bootstrap-theme') }}
+  {{ link_tag('bootstrap-toggle') }}
+  {{ link_tag('datatables.min') }}
+  {{ link_tag('highlight/{}'.format(highlight_theme|default('github'))) }}
+  {{ link_tag('main') }}
+
+  <!-- custom CSS -->
+  {% block custom_css %}
+  {% endblock %}
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="wrap">
+      <nav class="nav-bar navbar-inverse" role="navigation">
+        <div id="top-menu" class="container-fluid active">
+          <a class="navbar-brand" href="http://dopensource.com/dsiprouter"><img
+              src="{{ url_for('static', filename='images/dsiprouter_x50px.png') }}"></a>
+          <ul class="nav navbar-nav navbar-right">
+            <div class="btn-group" style="margin-right: 0.5em">
+              {% if state.kam_reload_required == True or state.dsip_reload_required == True %}
+                <button type="button" class="btn btn-warning" id="reload">Reload</button>
+                <button type="button" class="btn btn-warning dropdown-toggle" id="reload-split" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+              {% else %}
+                <button type="button" class="btn btn-primary" id="reload">Reload</button>
+                <button type="button" class="btn btn-primary dropdown-toggle" id="reload-split" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+              {% endif %}
+              <span class="caret"></span>
+              <span class="sr-only">Toggle Dropdown</span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                {% if state.kam_reload_required == True %}
+                  {% set kam_reload_state="btn-warning" %}
+                {% else %}
+                  {% set kam_reload_state="" %}
+                {% endif %}
+                {% if state.dsip_reload_required == True %}
+                  {% set dsip_reload_state="btn-warning" %}
+                {% else %}
+                  {% set dsip_reload_state="" %}
+                {% endif %}
+                <li><a class="dropdown-item {{ kam_reload_state }}" id="reloadkam">Reload Kamailio</a></li>
+                <li><a class="dropdown-item {{ dsip_reload_state }}" id="reload_dsip">Reload dSIPRouter</a></li>
+              </ul>
+            </div>
+            <!-- <form id="qform" class="navbar-form pull-left" role="search">
+               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+               <input type="text" class="form-control" placeholder="Search" />
+             </form> -->
+            <li class="dropdown movable">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="caret"></span><span
+                  class="fa fa-4x fa-child"></span>{{ session.username }}</a>
+              <ul class="dropdown-menu" role="menu">
+                <!-- <li><a href="#"><span class="fa fa-user"></span>My Profile</a></li>
+                <li><a href="#"><span class="fa fa-gear"></span>Settings</a></li> -->
+                <li class="divider"></li>
+                <li><a href="/logout"><span class="fa fa-power-off"></span>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <aside id="side-menu" class="aside" role="navigation">
+        <ul class="nav nav-list accordion">
+
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-lg fa-globe"></i>
+              <a class="navlink" href="/">Dashboard</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-lg fa-users"></i>
+              <a class="navlink" href="/carriergroups">Carrier Groups</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-users"></i>
+              <a class="navlink" href="/endpointgroups">Endpoint Groups</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-cloud"></i>
+              <a class="navlink" href="/domains">Domains</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-lg fa-map-marker"></i>
+              <a class="navlink" href="/inboundmapping">Inbound Routes</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-lg fa-file-image-o"></i>
+              <a class="navlink" href="/outboundroutes">Outbound Routes</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+          <!--
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-lg fa-file-image-o"></i>
+              <a class="navlink" href="/numberenrichment">Number Enrichment</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+          -->
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-lg fa-file-image-o"></i>
+              <a class="navlink" href="/cdrs">Call Detail Records</a>
+              <i class="fa fa-chevron-down"></i>
+            </div>
+          </li>
+
+          <li class="nav-header">
+            <div class="link">
+              <i class="fa fa-lg fa-file-image-o"></i>
+              <a class="navlink" href="#">System Settings</a>
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            </div>
+            <ul class="submenu">
+              <li><a class="navlink" href="/backupandrestore">Backup and Restore</a></li>
+              <li><a href="/certificates">Certificates</a></li>
+              <li><a href="/teleblock">Teleblock</a></li>
+              <li><a href="/transnexus">TransNexus</a></li>
+              <li><a href="/stirshaken">STIR/SHAKEN</a></li>
+              <li><a href="/licensing">License Manager</a></li>
+              <li><a href="/upgrade">Upgrade</a></li>
+            </ul>
+          </li>
+
+        </ul>
+      </aside>
+
+      <!--Body content-->
+      <div class="content">
+        <div class="top-bar" style="display: none;">
+          <div class="message-bar" style="text-align: center;"></div>
+          <a href="#menu" class="side-menu-link burger">
+            <span class='burger_inside' id='bgrOne'></span>
+            <span class='burger_inside' id='bgrTwo'></span>
+            <span class='burger_inside' id='bgrThree'></span>
+          </a>
+        </div>
+
+        <section class="content-inner">
+          <div id="reloading_overlay" class="hidden"></div>
+          {% block body %}
+          {% endblock %}
+        </section>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- inherited JS -->
+  {{ script_tag('jquery') }}
+  <script type="application/javascript">
+    /* globals set in window properties */
+    Object.defineProperty(window, "GUI_BASE_URL", {
+      configurable: false,
+      writable: false,
+      value: "{{ settings.DSIP_PROTO }}" + "://" + window.location.hostname + ":" + "{{ settings.DSIP_PORT }}" + "/"
+    });
+    Object.defineProperty(window, "API_BASE_URL", {
+      configurable: false,
+      writable: false,
+      value: "{{ settings.DSIP_API_PROTO }}" + "://" + window.location.hostname + ":" + "{{ settings.DSIP_API_PORT }}" + "/api/v1/"
+    });
+  </script>
+  {{ script_tag('util') }}
+  <script type="application/javascript">
+    {% include 'includes/overrides.js' %}
+  </script>
+  {{ script_tag('bootstrap') }}
+  {{ script_tag('bootstrap-toggle') }}
+  {{ script_tag('validator') }}
+  {{ script_tag('main') }}
+  {{ script_tag('datatables.min') }}
+  {{ script_tag('highlight/highlight.pack') }}
+  <script type="application/javascript">
+    $(document).ready(function() {
+      /* add code syntax highlighting */
+      $('pre code').each(function(i, block) {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+
+  <!-- custom JS -->
+  {% block custom_js %}
+  {% endblock %}
+
+</body>
+</html>

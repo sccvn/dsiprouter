@@ -1,0 +1,48 @@
+{% extends 'fullwidth_layout.html' %}
+
+{% block title %}TransNexus Configuration{% endblock %}
+
+{% block custom_css %}
+{% endblock %}
+
+{% block body %}
+  <div class="col-md-12">
+    <form action="/transnexus" method="POST" role="form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <div>
+        <h4>TransNexus Settings</h4>
+        <button name='save' id='save' class='btn btn-success btn-md' data-title="Add" data-toggle="modal"
+                data-target="#add">Save
+        </button>
+      </div>
+
+      <hr>
+
+      <div class="form-group">
+        <label class="label-toggle">STIR/SHAKEN Authentication service </label>
+        <input id="toggleTransnexus" name="authservice_enabled" type="checkbox" {{ authservice_checked }}
+               title="Toggle Auth Service"
+               data-toggle="toggle"
+               value="{{ settings.TRANSNEXUS_AUTHSERVICE_ENABLED }}"
+               data-on="<span class='icon-gryphon'></span> Enabled"
+               data-off="<span class='icon-gryphon'></span> Disabled"
+               data-width="120px">
+      </div>
+
+      <div id="transnexusOptions" class="form-group {{ transnexusOptions_hidden }}">
+        <div class="form-group">
+          <input class="form-control " type="text" id="authservice_host" name="authservice_host"
+                 placeholder="Auth Service Host"
+                 value="{{ settings.TRANSNEXUS_AUTHSERVICE_HOST }}">
+        </div>
+      </div> <!--End of TransNexus settings-->
+    </form>
+  </div>
+
+
+{% endblock %}
+
+{% block custom_js %}
+  {{ script_tag('transnexus') }}
+{% endblock %}

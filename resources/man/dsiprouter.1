@@ -1,0 +1,246 @@
+.\" Process this file with
+.\" groff -man -Tascii dsiprouter.1
+.\"
+.TH DSIPROUTER 1 "SEPTEMBER 2022" Linux "User Manuals"
+
+.SH NAME
+dsiprouter \- command line toolm for configuring a dSIPRouter platform.
+
+.SH SYNOPSIS
+.B dsiprouter {COMMAND} [OPTIONS]
+
+.SH DESCRIPTION
+.B dSIPRouter allows you to quickly turn Kamailio into an easy to use SIP Service Provider platform.
+
+.SH COMMAND
+.IP install
+Installs dSIPRouter and related components as specified.
+.IP uninstall
+Uninstall dSIPRouter.
+.IP clusterinstall
+Install dSIPRouter in a cluster of nodes
+.IP upgrade
+Upgrade dSIPRouter version to the latest release.
+.IP start
+Starts dSIPRouter services.
+.IP stop
+Stops dSIPRouter services.
+.IP restart
+Restarts dSIPRouter services.
+.IP configurekam
+Configures the Kamailio service on the dSIPRouter platform.
+.IP renewsslcert
+Renew configured letsencrypt SSL certificate.
+.IP configuresslcert
+Configure a new SSL certificate.
+.IP installmodules
+Install / uninstall dSIPRouter modules.
+.IP resetpassword
+Generate new unique credentials for dSIPRouter services.
+.IP setcredentials
+Set credentials for dSIPRouter services manually.
+.IP version|-v|--version
+Show the currently installed dSIPRouter version.
+.IP help|-h|--help
+Show the dSIPRouter CLI usage.
+
+.SH OPTIONS
+.IP "install options"
+-debug
+Debug mode to display install step by step.
+
+-all|--all
+Install dsiprouter, kamailio, and rtpengine.
+
+-kam|--kamailio
+Install kamailio.
+
+-dsip|--dsiprouter
+Install dSIPRouter GUI.
+
+-rtp|--rtpengine
+Install rtpengine.
+
+-homer <homerhost[:heplifyport]>
+Set the Homer node for dSIPRouter to integrate with.
+
+-db <db conn uri>|--database=<db conn uri>
+Set the database connection uri.
+
+-dsipcid <num>|--dsip-clusterid=<num>
+Set the dsiprouter cluster id.
+
+-dbadmin <[user[:pass]@]dbhost[:port][/dbname]>|--database-admin=<[user[:pass]@]dbhost[:port][/dbname]>
+Set the connection settings for the root/admin database account.
+
+-dsipcsync <num>|--dsip-clustersync=<num>
+Enable or disable cluster synchronization between dSIPRouter nodes.
+
+-dsipkey <32 chars>|--dsip-privkey=<32 chars>
+Set the private key for dSIPRouter.
+
+-with_lcr|--with_lcr=<num>
+Enable or disable least-cost routing module.
+
+-with_dev|--with_dev=<num>
+Whether to install development tools and testing tools.
+
+.IP "uninstall options"
+-debug
+Debug mode to display uninstall step by step.
+
+-all|--all
+Uninstall entire dSIPRouter platform.
+
+-kam|--kamailio
+Uninstall kamailio.
+
+-dsip|--dsiprouter
+Uninstall dSIPRouter GUI.
+
+-rtp|--rtpengine
+Uninstall rtpengine.
+
+.IP "clusterinstall options"
+-debug
+Debug mode to display install step by step.
+
+<[user1[:pass1]@]node1[:port1]> <[user2[:pass2]@]node2[:port2> ... -- [<install options>]
+URIs denoting the connection parameters for the nodes to install dSIPRouter on.
+
+-- [INSTALL OPTIONS]
+After the "--", supply all the arguments to the "install" command as normal to configure the dSIPRouter install.
+
+.IP "upgrade options"
+-debug
+Debug mode to display upgrade step by step.
+
+-dsipcid <num>|--dsip-clusterid=<num>
+Set the dsiprouter cluster id.
+
+-rel|--release <release number>
+The release number to upgrade to.
+
+.IP "start options"
+-debug
+Debug mode to display starting step by step.
+
+-all|--all
+Start all services.
+
+-kam|--kamailio
+Start kamailio.
+
+-dsip|--dsiprouter
+Start dsiprouter GUI.
+
+-rtp|--rtpengine
+Start rtpengine.
+
+.IP "stop options"
+-debug
+Debug mode to display stopping step by step.
+
+-all|--all
+Stop all services.
+
+-kam|--kamailio
+Stop kamailio.
+
+-dsip|--dsiprouter
+Stop dsiprouter GUI.
+
+-rtp|--rtpengine
+Stop rtpengine.
+
+.IP "restart options"
+-debug
+Debug mode to display restarting step by step.
+
+-all|--all
+Restart all services.
+
+-kam|--kamailio
+Restart kamailio.
+
+-dsip|--dsiprouter
+Restart dsiprouter.
+
+-rtp|--rtpengine
+Restart rtpengine.
+
+.IP "configurekam options"
+-debug
+Debug mode to display configuring kamailio step by step.
+
+.IP "renewsslcert options"
+-debug
+Debug mode to display renewing ssl certificate step by step.
+
+.IP "configuresslcert options"
+-debug
+Debug mode to display configuring ssl certificate step by step.
+
+-f|--force
+Remove previous SSL ceritificates and configs and configure new one.
+
+.IP "installmodules options"
+-debug
+Debug mode to display installing modules step by step.
+
+.IP "resetpassword options"
+-debug
+Debug mode to display resetting password step by step.
+
+-all|--all
+Used to reset all passwords.
+
+-dc|--dsip-creds
+Used to reset dsiprouter gui password.
+
+-ac|--api-creds
+Used to reset api password.
+
+-kc|--kam-creds
+Used to reset kamailio password.
+
+-ic|--ipc-creds
+Used to reset ipc password.
+
+-fid|--force-instance-id
+Force dSIPRouter to use the cloud instance ID as the GUI password.
+
+.IP "setcredentials options"
+-debug
+Debug mode to display setting credentials step by step.
+
+-dc <pass>|--dsip-creds=<pass>
+Used to set dSIPRouter GUI username/password manually.
+
+-ac <token>|--api-creds=<token>
+Used to set the dSIPRouter API token manually.
+
+-kc <pass>|--kam-creds=<pass>
+Used to set kamalio username/password/host/port/database name manually.
+
+-mc <pass>|--mail-creds=<pass>
+Used to set email useername/password manually.
+
+-ic <pass>|--ipc-creds=<pass>
+Used to set the dSIPRouter IPC token manually.
+
+-dac <[user[:pass]@]dbhost[:port][/dbname]>|--db-admin-creds=<[user[:pass]@]dbhost[:port][/dbname]>
+Update the root/admin database connection settings.
+
+-sc <key>|--session-creds=<key>
+Used to set the key for the flask session manager manually.
+
+.IP "configurekam options"
+-debug
+Show detailed info while configuring kamailio settings.
+
+.SH BUGS
+Report to Github Issues: https://github.com/dOpensource/dsiprouter.git
+
+.SH AUTHOR
+dOpenSource/dSIPRouter

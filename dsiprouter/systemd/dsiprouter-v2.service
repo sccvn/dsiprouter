@@ -1,0 +1,37 @@
+# Utilzing Type=simple while main process is still single threaded
+# Main process is managed via signals from systemd (stop/reload data/etc..)
+# When stopping the service a SIGTERM is sent immediately, to the main process
+# If, after 3s dsiprouter is still running, sends SIGKILL to all process
+#
+# The following are updated dynamically on install and should not be changed here:
+#   Environment=DSIP_PROJECT_DIR
+#   Environment=DSIP_RUN_DIR
+#   Environment=DSIP_SYSTEM_CONFIG_DIR
+[Unit]
+Description=dSIPRouter Service
+DefaultDependencies=no
+Requires=basic.target network.target
+After=network.target network-online.target systemd-journald.socket basic.target
+After=rsyslog.service mariadb.service nginx.service
+Wants=nginx.service mariadb.service
+
+[Service]
+Type=simple
+User=dsiprouter
+Group=dsiprouter
+Environment='DSIP_PROJECT_DIR=/opt/dsiprouter'
+Environment='DSIP_RUN_DIR=/run/dsiprouter'
+Environment='DSIP_SYSTEM_CONFIG_DIR=/etc/dsiprouter'
+EnvironmentFile=-/etc/defaults/dsiprouter.conf
+EnvironmentFile=-/etc/defaults/dsiprouter.d/*.conf
+# PIDFile requires an absolute path
+PIDFile=/run/dsiprouter/dsiprouter.pid
+# ExecStart* requires an absolute path for the program
+ExecStartPre=!-/usr/bin/dsiprouter chown -dsiprouter
+ExecStart=/usr/bin/dsiprouter exec
+TimeoutStopSec=3
+KillMode=mixed
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

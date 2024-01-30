@@ -1,0 +1,87 @@
+{% extends 'fullwidth_layout.html' %}
+
+{% block title %}dSIPRouter Upgrade{% endblock %}
+
+{% block custom_css %}
+{% endblock %}
+
+{% block body %}
+  <div>
+    {% if msg %}
+      <div class="alert alert-danger container">
+        <h2 style="color: rgb(0, 0, 0);"><strong>{{ msg }}</strong></h2>
+      </div>
+    {% endif %}
+  </div>
+  <div class="col-md-12">
+
+    <div class="wrapper-horizontal edge-centered children-align-inherit content-header">
+      <div>
+        <h3>dSIPRouter Upgrade</h3>
+      </div>
+      <div>
+        <button class="btn btn-med btn-info" id="btnShowLog">Show Previous Log</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <p>Current Version: {{ upgrade_settings["current_version"] }}</p>
+        <p>Latest Version: {{ upgrade_settings["latest_version"] }}</p>
+      </div>
+    </div>
+
+
+    <form action="/upgrade" method="POST" role="form" id="upgrade_form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="current_version" value="{{ upgrade_settings["current_version"] }}"/>
+      <input type="hidden" name="latest_version" value="{{ upgrade_settings["latest_version"] }}"/>
+
+      {% if upgrade_settings["upgrade_available"] == 1 %}
+        <div class="row">
+          <div class="col-sm-12">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <ul class=flashes>
+                  {% for message in messages %}
+                    <li>{{ message }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+            <div class="alert alert-warning">
+              <p>Please note that upgrades for cluster installations are not supported at this time.</p>
+            </div>
+
+            <button class="btn btn-primary"
+                    onclick="return confirm('Are you sure you want to start the upgrade process. This will temporarily take your server offline.')">
+              Upgrade Now
+            </button>
+          </div>
+        </div>
+      {% else %}
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="alert alert-success">
+              <p>Your system is up to date.</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </form>
+
+    <div id="upgrade_output_row" class="row" style="display: none">
+      <div class="col-sm-12" style="height: auto; border-radius: 1em; border-width: medium; border-style: ridge;">
+        <h4>Upgrade Log</h4>
+        <div style="padding: 0.5em; border-width: medium 0 0 0; border-style: ridge;"></div>
+        <div id="upgrade_output"></div>
+        <div style="padding: 0.5em;"></div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block custom_js %}
+  {{ script_tag('upgrade') }}
+{% endblock %}

@@ -1,0 +1,14 @@
+#-------------------------------------------------------------------
+# packages from debian 12 (bookworm) release
+#-------------------------------------------------------------------
+deb https://deb.debian.org/debian/ bookworm main contrib non-free
+#deb-src https://deb.debian.org/debian/ bookworm main contrib non-free
+
+deb https://deb.debian.org/debian/ bookworm-updates main contrib non-free
+#deb-src https://deb.debian.org/debian/ bookworm-updates main contrib non-free
+
+deb https://deb.debian.org/debian/ bookworm-backports main
+#deb-src https://deb.debian.org/debian/ bookworm-backports main
+
+deb https://deb.debian.org/debian-security/ bookworm-security main
+#deb-src https://deb.debian.org/debian-security/ bookworm-security main
